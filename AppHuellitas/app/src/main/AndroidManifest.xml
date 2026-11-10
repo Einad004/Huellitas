@@ -21,11 +21,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".MenuActivity"
             android:exported="false" />
-
+        <activity
+            android:name=".InicioFragment"
+            android:exported="false" />
+        <activity
+            android:name=".MascotasFragment"
+            android:exported="false" />
+        <activity
+            android:name=".PerfilFragment"
+            android:exported="false" />
     </application>
 
 </manifest>
