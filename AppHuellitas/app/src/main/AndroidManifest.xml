@@ -25,13 +25,13 @@
             android:name=".MenuActivity"
             android:exported="false" />
         <activity
-            android:name=".InicioFragment"
+            android:name=".InicioPantalla"
             android:exported="false" />
         <activity
-            android:name=".MascotasFragment"
+            android:name=".MascotasPantalla"
             android:exported="false" />
         <activity
-            android:name=".PerfilFragment"
+            android:name=".PerfilPantalla"
             android:exported="false" />
     </application>
 
