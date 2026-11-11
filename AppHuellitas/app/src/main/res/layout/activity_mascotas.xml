@@ -81,14 +81,6 @@
                 android:inputType="text"
                 android:importantForAutofill="no" />
 
-            <EditText
-                android:id="@+id/etFotoUrl"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="URL de foto (opcional)"
-                android:inputType="text"
-                android:importantForAutofill="no" />
-
             <Button
                 android:id="@+id/btnGuardarMascota"
                 android:layout_width="match_parent"
