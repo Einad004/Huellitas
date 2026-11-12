@@ -1,5 +1,7 @@
+
 package com.udh.apphuellitas;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.widget.FrameLayout;
@@ -8,17 +10,22 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class MenuActivity extends AppCompatActivity {
+public abstract class MenuActivity extends AppCompatActivity {
 
+    // Contenedor de las pantallas
     private FrameLayout contenedor;
+
+    // Barra inferior compartida
     private BottomNavigationView bottomNavigation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.menu);
 
         contenedor = findViewById(R.id.contenedor);
+
         bottomNavigation =
                 findViewById(R.id.bottomNavigation);
 
@@ -26,66 +33,67 @@ public class MenuActivity extends AppCompatActivity {
 
             int id = item.getItemId();
 
-            if (id == R.id.nav_inicio) {
-                cargarLayout(R.layout.activity_inicio);
-                return true;
-
-            } else if (id == R.id.nav_mascotas) {
-                cargarLayout(R.layout.activity_mascotas);
-                return true;
-
-            } else if (id == R.id.nav_perfil) {
-                cargarLayout(R.layout.activity_perfil);
+            if (id == obtenerItemActual()) {
                 return true;
             }
 
-            return false;
+            Intent intent;
+
+            if (id == R.id.nav_inicio) {
+
+                intent = new Intent(
+                        this,
+                        InicioPantalla.class
+                );
+
+            } else if (id == R.id.nav_mascotas) {
+
+                intent = new Intent(
+                        this,
+                        MascotasPantalla.class
+                );
+
+            } else if (id == R.id.nav_perfil) {
+
+                intent = new Intent(
+                        this,
+                        PerfilPantalla.class
+                );
+
+            } else {
+                return false;
+            }
+
+            // Navegar a la pantalla seleccionada
+            intent.addFlags(
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+            );
+
+            startActivity(intent);
+
+            return true;
         });
 
-        // Cargar la pantalla inicial
-        int seleccionado = R.id.nav_inicio;
-
-        if (savedInstanceState != null) {
-            seleccionado = savedInstanceState.getInt(
-                    "seccion", R.id.nav_inicio
-            );
-        }
-
-        bottomNavigation.setSelectedItemId(seleccionado);
-
-        // Mostrar la sección incluso si ya estaba seleccionada
-        mostrarSeleccion(seleccionado);
+        bottomNavigation.getMenu()
+                .findItem(obtenerItemActual())
+                .setChecked(true);
     }
 
-    private void mostrarSeleccion(int id) {
-        if (id == R.id.nav_mascotas) {
-            cargarLayout(R.layout.activity_mascotas);
+    // Cada pantalla indica su opción de navegación
+    protected abstract int obtenerItemActual();
 
-        } else if (id == R.id.nav_perfil) {
-            cargarLayout(R.layout.activity_perfil);
+    // Cargar el XML de la pantalla correspondiente
+    protected void cargarContenido(int layoutId) {
 
-        } else {
-            cargarLayout(R.layout.activity_inicio);
-        }
-    }
-
-    private void cargarLayout(int layoutId) {
-
+        // Limpiar contenido anterior
         contenedor.removeAllViews();
 
+        // Insertar el layout dentro del contenedor
         LayoutInflater.from(this).inflate(
                 layoutId,
                 contenedor,
                 true
         );
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt(
-                "seccion",
-                bottomNavigation.getSelectedItemId()
-        );
-        super.onSaveInstanceState(outState);
     }
 }
