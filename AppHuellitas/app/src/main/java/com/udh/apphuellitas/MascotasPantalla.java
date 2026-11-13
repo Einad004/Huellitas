@@ -26,6 +26,8 @@ public class MascotasPantalla extends MenuActivity {
                     MascotasPantalla.this,
                     Registro.class
             );
+            startActivity(intent);
+
         });
 
 

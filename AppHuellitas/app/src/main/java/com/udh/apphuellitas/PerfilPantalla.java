@@ -15,6 +15,11 @@ public class PerfilPantalla extends MenuActivity {
 
         btnCerrarSesion = findViewById(R.id.btnCerrarSesion);
 
+        getSharedPreferences("HuellitasPrefs", MODE_PRIVATE)
+                .edit()
+                .remove("USUARIO")
+                .apply();
+
         btnCerrarSesion.setOnClickListener(v -> {
             Intent intent = new Intent(
                     PerfilPantalla.this,

@@ -15,11 +15,13 @@ public class InicioPantalla extends MenuActivity {
 
         txtBienvenida = findViewById(R.id.txtBienvenida);
 
-        // Recibir el usuario desde MainActivity
-        String usuario = getIntent()
-                .getStringExtra("USUARIO");
 
-        if (usuario != null && !usuario.isEmpty()) {
+        String usuario = getSharedPreferences(
+                "HuellitasPrefs",
+                MODE_PRIVATE
+        ).getString("USUARIO", "");
+
+        if (!usuario.isEmpty()) {
             txtBienvenida.setText("Bienvenido, " + usuario);
         } else {
             txtBienvenida.setText("Bienvenido a Huellitas");

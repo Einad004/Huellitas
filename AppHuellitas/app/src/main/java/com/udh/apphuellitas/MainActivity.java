@@ -35,6 +35,13 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
+
+            getSharedPreferences("HuellitasPrefs", MODE_PRIVATE)
+                    .edit()
+                    .putString("USUARIO", usuario)
+                    .apply();
+
+
             // Abrir Inicio y enviar el usuario
             Intent intent = new Intent(
                     MainActivity.this,

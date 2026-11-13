@@ -7,11 +7,127 @@
     android:layout_height="match_parent"
     tools:context=".Registro">
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Button"
-        tools:layout_editor_absoluteX="165dp"
-        tools:layout_editor_absoluteY="325dp" />
+    <ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:background="#F8F6FC">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Encabezado -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Registrar mascota"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:textColor="#6750A4" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Completa los datos de tu mascota."
+                android:textSize="14sp"
+                android:textColor="#666666" />
+
+            <!-- Nombre -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="Nombre de la mascota"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etNombreMascota"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:hint="Ej. Max"
+                android:inputType="textCapWords"
+                android:singleLine="true" />
+
+            <!-- Especie -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Especie"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/spEspecie"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="6dp" />
+
+            <!-- Raza -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Raza"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etRaza"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:hint="Ingresar raza"
+                android:inputType="textCapWords"
+                android:singleLine="true" />
+
+            <!-- Fecha -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Fecha de nacimiento"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnFechaNacimiento"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Seleccionar fecha" />
+
+            <!-- Estado del registro -->
+            <TextView
+                android:id="@+id/txtEstadoRegistro"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text=""
+                android:textSize="14sp"
+                android:textColor="#6750A4" />
+
+            <!-- Guardar -->
+            <Button
+                android:id="@+id/btnGuardarMascota"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Guardar mascota" />
+
+            <!-- Cancelar -->
+            <Button
+                android:id="@+id/btnCancelarRegistro"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Cancelar" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
