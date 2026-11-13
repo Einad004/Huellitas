@@ -126,7 +126,148 @@
                 android:layout_marginTop="8dp"
                 android:text="Cancelar" />
 
+
+            <!-- SECCIÓN: VACUNAS -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="Registro de vacunas"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#6750A4" />
+
+            <EditText
+                android:id="@+id/etNombreVacuna"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Nombre de la vacuna"
+                android:inputType="textCapWords" />
+
+            <EditText
+                android:id="@+id/etLoteVacuna"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="Número de lote"
+                android:inputType="text" />
+
+            <Button
+                android:id="@+id/btnFechaVacuna"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Fecha de aplicación" />
+
+            <Button
+                android:id="@+id/btnGuardarVacuna"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Guardar vacuna"
+                android:enabled="false" />
+
+
+            <!-- SECCIÓN: DIETA -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="Alimentación y dieta"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#6750A4" />
+
+            <EditText
+                android:id="@+id/etMarcaAlimento"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Marca o tipo de alimento"
+                android:inputType="textCapWords" />
+
+            <EditText
+                android:id="@+id/etRacionGramos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="Ración en gramos"
+                android:inputType="numberDecimal" />
+
+            <EditText
+                android:id="@+id/etFrecuenciaDiaria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="Comidas por día"
+                android:inputType="number" />
+
+            <Button
+                android:id="@+id/btnGuardarDieta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Guardar dieta"
+                android:enabled="false" />
+
+
+            <!-- SECCIÓN: VISITAS VETERINARIAS -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="Visitas veterinarias"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#6750A4" />
+
+            <Button
+                android:id="@+id/btnFechaVisita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Fecha de visita" />
+
+            <EditText
+                android:id="@+id/etLugarVeterinaria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="Clínica o veterinaria"
+                android:inputType="textCapWords" />
+
+            <EditText
+                android:id="@+id/etMotivoVisita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="Motivo de la consulta"
+                android:inputType="textCapSentences" />
+
+            <EditText
+                android:id="@+id/etDiagnostico"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="Diagnóstico u observaciones"
+                android:inputType="textMultiLine"
+                android:minLines="2" />
+
+            <Button
+                android:id="@+id/btnGuardarVisita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Guardar visita veterinaria"
+                android:enabled="false" />
+
+            
         </LinearLayout>
+
 
     </ScrollView>
 
