@@ -6,13 +6,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.udh.apphuellitas.model.AppDatabase;
 import com.udh.apphuellitas.model.Mascota;
+import com.udh.apphuellitas.model.Vacuna;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,8 +33,16 @@ public class BuscarMascota extends MenuActivity {
 
     private AppDatabase db;
     private ExecutorService io;
-
     private Mascota mascotaEncontrada;
+
+    // VACUNA
+
+    private Spinner spVacunas;
+    private TextView txtDetalleVacuna;
+    private Button btnEliminarVacuna;
+    private List<Vacuna> vacunas = new ArrayList<>();
+    private Vacuna vacunaSeleccionada;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,17 +52,19 @@ public class BuscarMascota extends MenuActivity {
 
         etBuscarId = findViewById(R.id.etBuscarId);
         txtResultado = findViewById(R.id.txtResultado);
-
         btnBuscarId = findViewById(R.id.btnBuscarId);
-        btnEditarMascota =
-                findViewById(R.id.btnEditarMascota);
-        btnEliminarMascota =
-                findViewById(R.id.btnEliminarMascota);
+        btnEditarMascota = findViewById(R.id.btnEditarMascota);
+        btnEliminarMascota = findViewById(R.id.btnEliminarMascota);
+
+        spVacunas = findViewById(R.id.spVacunas);
+        txtDetalleVacuna = findViewById(R.id.txtDetalleVacuna);
+        btnEliminarVacuna = findViewById(R.id.btnEliminarVacuna);
 
         db = AppDatabase.getInstance(this);
         io = Executors.newSingleThreadExecutor();
 
         btnBuscarId.setOnClickListener(v -> buscarMascota());
+
 
         btnEditarMascota.setOnClickListener(v -> {
 
@@ -64,6 +80,13 @@ public class BuscarMascota extends MenuActivity {
                     mascotaEncontrada.getIdMascota()
             );
 
+            if (vacunaSeleccionada != null) {
+                intent.putExtra(
+                        "ID_VACUNA",
+                        vacunaSeleccionada.getIdVacuna()
+                );
+            }
+
             startActivity(intent);
         });
 
@@ -73,12 +96,39 @@ public class BuscarMascota extends MenuActivity {
                 confirmarEliminacion();
             }
         });
+
+        // VACUNA
+        spVacunas.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+
+                    @Override
+                    public void onItemSelected(
+                            AdapterView<?> parent,
+                            View view,
+                            int position,
+                            long id) {
+
+                        if (position < vacunas.size()) {
+                            vacunaSeleccionada = vacunas.get(position);
+
+                            txtDetalleVacuna.setText(
+                                    "Vacuna: " + vacunaSeleccionada.getNombreVacuna()
+                                            + "\nLote: " + vacunaSeleccionada.getLote()
+                                            + "\nFecha: " + vacunaSeleccionada.getFechaAplicacion()
+                            );
+
+                            btnEliminarVacuna.setEnabled(true);
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                    }
+                });
+
     }
 
-    // ===================================
     // BUSCAR MASCOTA POR ID
-    // ===================================
-
     private void buscarMascota() {
 
         String id = etBuscarId.getText()
@@ -100,8 +150,7 @@ public class BuscarMascota extends MenuActivity {
 
             try {
 
-                Mascota mascota =
-                        db.mascotaDao().buscarPorId(id);
+                Mascota mascota = db.mascotaDao().buscarPorId(id);
 
                 runOnUiThread(() -> {
 
@@ -134,6 +183,8 @@ public class BuscarMascota extends MenuActivity {
                                         mascota.getFechaNacimiento()
                         );
 
+                        listarVacunas(mascota.getIdMascota());
+
                         btnEditarMascota.setVisibility(
                                 View.VISIBLE
                         );
@@ -159,12 +210,10 @@ public class BuscarMascota extends MenuActivity {
                 );
             }
         });
+
     }
 
-    // ===================================
     // CONFIRMAR ELIMINACIÓN
-    // ===================================
-
     private void confirmarEliminacion() {
 
         new AlertDialog.Builder(this)
@@ -184,10 +233,7 @@ public class BuscarMascota extends MenuActivity {
                 .show();
     }
 
-    // ===================================
     // ELIMINAR DE ROOM
-    // ===================================
-
     private void eliminarMascota() {
 
         if (mascotaEncontrada == null) return;
@@ -262,6 +308,60 @@ public class BuscarMascota extends MenuActivity {
             buscarMascota();
         }
     }
+
+    // VACUNA
+    private void listarVacunas(String idMascota) {
+
+        vacunaSeleccionada = null;
+        btnEliminarVacuna.setEnabled(false);
+
+        io.execute(() -> {
+
+            try {
+                List<Vacuna> lista = db.vacunaDao()
+                        .listarPorMascota(idMascota);
+
+                runOnUiThread(() -> {
+
+                    vacunas = lista;
+
+                    List<String> nombres = new ArrayList<>();
+
+                    for (Vacuna vacuna : vacunas) {
+                        nombres.add(vacuna.getNombreVacuna());
+                    }
+
+                    ArrayAdapter<String> adapter =
+                            new ArrayAdapter<>(
+                                    this,
+                                    android.R.layout.simple_spinner_item,
+                                    nombres
+                            );
+
+                    adapter.setDropDownViewResource(
+                            android.R.layout.simple_spinner_dropdown_item
+                    );
+
+                    spVacunas.setAdapter(adapter);
+
+                    if (vacunas.isEmpty()) {
+                        txtDetalleVacuna.setText(
+                                "Esta mascota no tiene vacunas registradas."
+                        );
+                    }
+                });
+
+            } catch (Exception e) {
+
+                runOnUiThread(() ->
+                        txtDetalleVacuna.setText(
+                                "Error al consultar las vacunas"
+                        )
+                );
+            }
+        });
+    }
+
 
     @Override
     protected void onDestroy() {

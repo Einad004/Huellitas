@@ -146,6 +146,12 @@
                 android:hint="Nombre de la vacuna"
                 android:inputType="textCapWords" />
 
+            <LinearLayout
+                android:id="@+id/contenedorVacunas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
             <EditText
                 android:id="@+id/etLoteVacuna"
                 android:layout_width="match_parent"

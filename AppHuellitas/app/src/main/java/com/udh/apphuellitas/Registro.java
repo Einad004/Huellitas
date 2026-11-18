@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.udh.apphuellitas.model.AppDatabase;
 import com.udh.apphuellitas.model.Mascota;
+import com.udh.apphuellitas.model.Vacuna;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,46 +31,38 @@ public class Registro extends MenuActivity {
     private EditText etNombreMascota;
     private EditText etRaza;
     private Spinner spEspecie;
-
     private Button btnFechaNacimiento;
     private Button btnGuardarMascota;
     private Button btnCancelarRegistro;
-
     private TextView txtEstadoRegistro;
-
     private String fechaNacimiento = "";
     private String idMascotaActual = "";
 
     // 2. DATOS DE VACUNAS
     private EditText etNombreVacuna;
     private EditText etLoteVacuna;
-
     private Button btnFechaVacuna;
     private Button btnGuardarVacuna;
-
     private String fechaVacuna = "";
 
     // 3. DATOS DE DIETAS
     private EditText etMarcaAlimento;
     private EditText etRacionGramos;
     private EditText etFrecuenciaDiaria;
-
     private Button btnGuardarDieta;
 
     // 4. VISITAS VETERINARIAS
     private EditText etLugarVeterinaria;
     private EditText etMotivoVisita;
     private EditText etDiagnostico;
-
     private Button btnFechaVisita;
     private Button btnGuardarVisita;
-
     private String fechaVisita = "";
-
     private AppDatabase db;
     private ExecutorService io;
     private boolean modoEdicion = false;
     private Mascota mascotaEditar;
+    private Vacuna vacunaEditar;
 
 
     // 5. INICIAR ACTIVITY
@@ -113,17 +106,13 @@ public class Registro extends MenuActivity {
         configurarEspecies();
 
         String idEditar = getIntent().getStringExtra("ID_MASCOTA");
+
         if (idEditar != null && !idEditar.isEmpty()) {
             modoEdicion = true;
             cargarDatosMascota(idEditar);
         }
 
-        // ---------------------------------
         // Recuperar estado temporal
-        // ---------------------------------
-
-
-
         if (savedInstanceState != null) {
 
             fechaNacimiento = savedInstanceState.getString("FECHA_NACIMIENTO", "");
@@ -145,7 +134,7 @@ public class Registro extends MenuActivity {
                 btnFechaVisita.setText(fechaVisita);
             }
 
-            if (!idMascotaActual.isEmpty()) {
+            if (!idMascotaActual.isEmpty() && !modoEdicion) {
                 txtEstadoRegistro.setText(
                         "Mascota guardada. Puedes agregar sus cuidados."
                 );
@@ -156,10 +145,7 @@ public class Registro extends MenuActivity {
         // Habilitar cuidados solo con mascota
         actualizarBotonesCuidados();
 
-        // ---------------------------------
         // Eventos del formulario
-        // ---------------------------------
-
         btnFechaNacimiento.setOnClickListener(
                 v -> seleccionarFechaNacimiento()
         );
@@ -182,9 +168,13 @@ public class Registro extends MenuActivity {
                 v -> seleccionarFechaVacuna()
         );
 
-        btnGuardarVacuna.setOnClickListener(
-                v -> guardarVacuna()
-        );
+        btnGuardarVacuna.setOnClickListener(v -> {
+            if (vacunaEditar != null) {
+                actualizarVacuna();
+            } else {
+                guardarVacuna();
+            }
+        });
 
         btnGuardarDieta.setOnClickListener(
                 v -> guardarDieta()
@@ -199,10 +189,7 @@ public class Registro extends MenuActivity {
         );
     }
 
-    // =====================================
-    // 6. CONFIGURAR ESPECIES
-    // =====================================
-
+    // CONFIGURAR ESPECIES
     private void configurarEspecies() {
 
         String[] especies = {
@@ -229,10 +216,7 @@ public class Registro extends MenuActivity {
         spEspecie.setAdapter(adapter);
     }
 
-    // =====================================
-    // 7. SELECCIÓN DE FECHAS
-    // =====================================
-
+    // SELECCIÓN DE FECHAS
     private void seleccionarFechaNacimiento() {
         mostrarCalendario(1);
     }
@@ -304,9 +288,7 @@ public class Registro extends MenuActivity {
         dialogo.show();
     }
 
-    // =====================================
-    // 8. GUARDAR MASCOTA
-    // =====================================
+    // GUARDAR MASCOTA
     private void guardarMascota() {
 
         String nombre = etNombreMascota.getText().toString().trim();
@@ -356,16 +338,22 @@ public class Registro extends MenuActivity {
                 });
 
             } catch (Exception e) {
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al guardar mascota en Room",
+                        e
+                );
+
                 runOnUiThread(() ->
-                        txtEstadoRegistro.setText("Error al guardar mascota")
+                        txtEstadoRegistro.setText(
+                                "Error al guardar mascota"
+                        )
                 );
             }
         });
     }
 
-    // =====================================
-    // 9. CARGAR DATOS
-    // =====================================
+    // CARGAR DATOS
     private void cargarDatosMascota(String id) {
 
         btnGuardarMascota.setEnabled(false);
@@ -427,6 +415,16 @@ public class Registro extends MenuActivity {
                     }
 
                     // Cambiar el texto del botón
+                    btnGuardarMascota.setText("Actualizar mascota");
+                    btnGuardarMascota.setEnabled(true);
+
+                    actualizarBotonesCuidados();
+
+                    txtEstadoRegistro.setText(
+                            "Editando: " + mascota.getNombre()
+                    );
+
+
                     btnGuardarMascota.setText(
                             "Actualizar mascota"
                     );
@@ -438,6 +436,14 @@ public class Registro extends MenuActivity {
                     txtEstadoRegistro.setText(
                             "Editando: " + mascota.getNombre()
                     );
+
+                    String idVacuna = getIntent().getStringExtra("ID_VACUNA");
+
+                    if (idVacuna != null && !idVacuna.isEmpty()) {
+                        cargarVacuna(idVacuna);
+                    }
+
+
                 });
 
             } catch (Exception e) {
@@ -451,9 +457,7 @@ public class Registro extends MenuActivity {
         });
     }
 
-    // =====================================
-    // ACTUALIZAR MASCOTA
-    // =====================================
+    // Actualizar Mascota
     private void actualizarMascota() {
 
         if (mascotaEditar == null) {
@@ -477,7 +481,6 @@ public class Registro extends MenuActivity {
             return;
         }
 
-        // Modificar los datos del objeto
         mascotaEditar.setNombre(nombre);
         mascotaEditar.setRaza(raza);
 
@@ -491,7 +494,6 @@ public class Registro extends MenuActivity {
 
         btnGuardarMascota.setEnabled(false);
 
-        // Actualizar en Room
         io.execute(() -> {
 
             try {
@@ -533,14 +535,99 @@ public class Registro extends MenuActivity {
         });
     }
 
-
-    // =====================================
-    // 9. GUARDAR VACUNA
-    // =====================================
-
+    // VACUNA
+    // Guardar Vacuna
     private void guardarVacuna() {
 
-        if (!existeMascotaActual()) {
+        if (!existeMascotaActual()) return;
+
+        String nombre = etNombreVacuna
+                .getText().toString().trim();
+
+        String lote = etLoteVacuna
+                .getText().toString().trim();
+
+        if (nombre.isEmpty() || lote.isEmpty()
+                || fechaVacuna.isEmpty()) {
+            mostrarMensaje("Complete los datos de la vacuna");
+            return;
+        }
+
+        Vacuna vacuna = new Vacuna();
+        vacuna.setIdVacuna(UUID.randomUUID().toString());
+        vacuna.setIdMascota(idMascotaActual);
+        vacuna.setNombreVacuna(nombre);
+        vacuna.setLote(lote);
+        vacuna.setFechaAplicacion(fechaVacuna);
+
+        btnGuardarVacuna.setEnabled(false);
+
+        io.execute(() -> {
+            try {
+                db.vacunaDao().insertar(vacuna);
+
+                runOnUiThread(() -> {
+                    mostrarMensaje("Vacuna guardada");
+                    etNombreVacuna.setText("");
+                    etLoteVacuna.setText("");
+                    fechaVacuna = "";
+                    btnFechaVacuna.setText("Fecha de aplicación");
+                    btnGuardarVacuna.setEnabled(true);
+                });
+
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    mostrarMensaje("Error al guardar vacuna");
+                    btnGuardarVacuna.setEnabled(true);
+                });
+            }
+        });
+    }
+
+    // Listar Vacuna
+    private void cargarVacuna(String id) {
+
+        io.execute(() -> {
+
+            Vacuna vacuna = db.vacunaDao().buscarPorId(id);
+
+            runOnUiThread(() -> {
+
+                if (vacuna == null) {
+                    mostrarMensaje("Vacuna no encontrada");
+                    return;
+                }
+
+                // Verificar mascota asociada
+                if (!vacuna.getIdMascota().equals(
+                        idMascotaActual)) {
+                    mostrarMensaje("Vacuna no corresponde a la mascota");
+                    return;
+                }
+
+                vacunaEditar = vacuna;
+
+                etNombreVacuna.setText(
+                        vacuna.getNombreVacuna()
+                );
+
+                etLoteVacuna.setText(
+                        vacuna.getLote()
+                );
+
+                fechaVacuna = vacuna.getFechaAplicacion();
+                btnFechaVacuna.setText(fechaVacuna);
+
+                btnGuardarVacuna.setEnabled(true);
+                btnGuardarVacuna.setText("Actualizar vacuna");
+            });
+        });
+    }
+
+    // Actualizar Vacuna
+    private void actualizarVacuna() {
+
+        if (vacunaEditar == null) {
             return;
         }
 
@@ -550,187 +637,65 @@ public class Registro extends MenuActivity {
         String lote = etLoteVacuna
                 .getText().toString().trim();
 
-        if (nombre.isEmpty()) {
-
-            etNombreVacuna.setError(
-                    "Ingrese el nombre de la vacuna"
-            );
-
-            etNombreVacuna.requestFocus();
-            return;
-        }
-
-        if (lote.isEmpty()) {
-
-            etLoteVacuna.setError(
-                    "Ingrese el número de lote"
-            );
-
-            etLoteVacuna.requestFocus();
-            return;
-        }
-
-        if (fechaVacuna.isEmpty()) {
+        if (nombre.isEmpty() || lote.isEmpty()
+                || fechaVacuna.isEmpty()) {
 
             mostrarMensaje(
-                    "Seleccione la fecha de aplicación"
+                    "Complete los datos de la vacuna"
             );
-
             return;
         }
 
-        try {
+        vacunaEditar.setNombreVacuna(nombre);
+        vacunaEditar.setLote(lote);
+        vacunaEditar.setFechaAplicacion(fechaVacuna);
 
-            JSONObject vacuna = new JSONObject();
+        btnGuardarVacuna.setEnabled(false);
 
-            vacuna.put(
-                    "idVacuna",
-                    UUID.randomUUID().toString()
-            );
+        io.execute(() -> {
 
-            vacuna.put(
-                    "idMascota",
-                    idMascotaActual
-            );
+            try {
 
-            vacuna.put("nombreVacuna", nombre);
-            vacuna.put("lote", lote);
+                int filas = db.vacunaDao()
+                        .actualizar(vacunaEditar);
 
-            vacuna.put(
-                    "fechaAplicacion",
-                    fechaVacuna
-            );
+                runOnUiThread(() -> {
 
-            if (guardarDato("VACUNAS", vacuna)) {
+                    if (filas > 0) {
 
-                mostrarMensaje(
-                        "Vacuna guardada correctamente"
-                );
+                        mostrarMensaje(
+                                "Vacuna actualizada correctamente"
+                        );
 
-                etNombreVacuna.setText("");
-                etLoteVacuna.setText("");
+                        finish();
 
-                fechaVacuna = "";
+                    } else {
 
-                btnFechaVacuna.setText(
-                        "Fecha de aplicación"
-                );
+                        mostrarMensaje(
+                                "No se encontró la vacuna"
+                        );
 
-            } else {
+                        btnGuardarVacuna.setEnabled(true);
+                    }
+                });
 
-                mostrarErrorGuardado();
+            } catch (Exception e) {
+
+                runOnUiThread(() -> {
+
+                    mostrarMensaje(
+                            "Error al actualizar vacuna"
+                    );
+
+                    btnGuardarVacuna.setEnabled(true);
+                });
             }
-
-        } catch (JSONException e) {
-
-            mostrarErrorGuardado();
-        }
+        });
     }
 
-    // =====================================
-    // 10. GUARDAR DIETA
-    // =====================================
-
+    // GUARDAR DIETA
     private void guardarDieta() {
 
-        if (!existeMascotaActual()) {
-            return;
-        }
-
-        String marca = etMarcaAlimento
-                .getText().toString().trim();
-
-        String racion = etRacionGramos
-                .getText().toString().trim();
-
-        String frecuencia = etFrecuenciaDiaria
-                .getText().toString().trim();
-
-        if (marca.isEmpty()) {
-
-            etMarcaAlimento.setError(
-                    "Ingrese la marca o tipo de alimento"
-            );
-
-            etMarcaAlimento.requestFocus();
-            return;
-        }
-
-        double gramos;
-        int comidas;
-
-        try {
-
-            gramos = Double.parseDouble(racion);
-            comidas = Integer.parseInt(frecuencia);
-
-        } catch (NumberFormatException e) {
-
-            mostrarMensaje(
-                    "Ingrese cantidades válidas"
-            );
-
-            return;
-        }
-
-        if (!Double.isFinite(gramos)
-                || gramos <= 0 || comidas <= 0) {
-
-            mostrarMensaje(
-                    "Ingrese cantidades mayores a cero"
-            );
-
-            return;
-        }
-
-        try {
-
-            JSONObject dieta = new JSONObject();
-
-            dieta.put(
-                    "idDieta",
-                    UUID.randomUUID().toString()
-            );
-
-            dieta.put(
-                    "idMascota",
-                    idMascotaActual
-            );
-
-            dieta.put(
-                    "marcaAlimento",
-                    marca
-            );
-
-            dieta.put(
-                    "racionGramos",
-                    gramos
-            );
-
-            dieta.put(
-                    "frecuenciaDiaria",
-                    comidas
-            );
-
-            if (guardarDato("DIETAS", dieta)) {
-
-                mostrarMensaje(
-                        "Dieta guardada correctamente"
-                );
-
-                etMarcaAlimento.setText("");
-                etRacionGramos.setText("");
-                etFrecuenciaDiaria.setText("");
-
-            } else {
-
-                mostrarErrorGuardado();
-            }
-
-        } catch (JSONException e) {
-
-            mostrarErrorGuardado();
-        }
     }
 
     // =====================================
@@ -738,97 +703,6 @@ public class Registro extends MenuActivity {
     // =====================================
 
     private void guardarVisita() {
-
-        if (!existeMascotaActual()) {
-            return;
-        }
-
-        String lugar = etLugarVeterinaria
-                .getText().toString().trim();
-
-        String motivo = etMotivoVisita
-                .getText().toString().trim();
-
-        String diagnostico = etDiagnostico
-                .getText().toString().trim();
-
-        if (fechaVisita.isEmpty()) {
-
-            mostrarMensaje(
-                    "Seleccione la fecha de visita"
-            );
-
-            return;
-        }
-
-        if (lugar.isEmpty()) {
-
-            etLugarVeterinaria.setError(
-                    "Ingrese el lugar de la visita"
-            );
-
-            etLugarVeterinaria.requestFocus();
-            return;
-        }
-
-        if (motivo.isEmpty()) {
-
-            etMotivoVisita.setError(
-                    "Ingrese el motivo de consulta"
-            );
-
-            etMotivoVisita.requestFocus();
-            return;
-        }
-
-        try {
-
-            JSONObject visita = new JSONObject();
-
-            visita.put(
-                    "idVisita",
-                    UUID.randomUUID().toString()
-            );
-
-            visita.put(
-                    "idMascota",
-                    idMascotaActual
-            );
-
-            visita.put("fecha", fechaVisita);
-            visita.put("lugar", lugar);
-            visita.put("motivo", motivo);
-
-            visita.put(
-                    "diagnostico",
-                    diagnostico
-            );
-
-            if (guardarDato("VISITAS", visita)) {
-
-                mostrarMensaje(
-                        "Visita veterinaria guardada"
-                );
-
-                fechaVisita = "";
-
-                btnFechaVisita.setText(
-                        "Fecha de visita"
-                );
-
-                etLugarVeterinaria.setText("");
-                etMotivoVisita.setText("");
-                etDiagnostico.setText("");
-
-            } else {
-
-                mostrarErrorGuardado();
-            }
-
-        } catch (JSONException e) {
-
-            mostrarErrorGuardado();
-        }
     }
 
     // =====================================
@@ -889,9 +763,7 @@ public class Registro extends MenuActivity {
     }
 
     private void actualizarBotonesCuidados() {
-
-        boolean habilitado =
-                !idMascotaActual.isEmpty();
+        boolean habilitado = !idMascotaActual.isEmpty();
 
         btnGuardarVacuna.setEnabled(habilitado);
         btnGuardarDieta.setEnabled(habilitado);
@@ -899,11 +771,9 @@ public class Registro extends MenuActivity {
     }
 
     private void bloquearFormularioMascota() {
-
         etNombreMascota.setEnabled(false);
         etRaza.setEnabled(false);
         spEspecie.setEnabled(false);
-
         btnFechaNacimiento.setEnabled(false);
         btnGuardarMascota.setEnabled(false);
     }
@@ -913,19 +783,10 @@ public class Registro extends MenuActivity {
     // =====================================
 
     private void mostrarMensaje(String mensaje) {
-
-        Toast.makeText(
-                this,
-                mensaje,
-                Toast.LENGTH_SHORT
-        ).show();
+        Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
     }
 
     private void mostrarErrorGuardado() {
-
-        mostrarMensaje(
-                "No se pudo guardar el registro"
-        );
     }
 
     // =====================================

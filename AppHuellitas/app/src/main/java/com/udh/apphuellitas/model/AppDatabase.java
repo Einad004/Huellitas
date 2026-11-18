@@ -7,13 +7,18 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 @Database(
-        entities = {Mascota.class},
-        version = 1,
+        entities = {
+                Mascota.class,
+                Vacuna.class
+        },
+        version = 2,
         exportSchema = false
 )
+
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract MascotaDao mascotaDao();
+    public abstract VacunaDao vacunaDao();
 
     private static volatile AppDatabase INSTANCE;
 

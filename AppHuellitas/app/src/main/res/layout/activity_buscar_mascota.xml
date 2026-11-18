@@ -31,7 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="d5013061-7d5a-4a30-bfd7-2fa445d5dcbe"
+                android:text="29c4bdf3-e60c-414a-9371-771225e7918e"
                 android:inputType="text" />
 
             <Button
@@ -49,6 +49,37 @@
                 android:text="Los datos aparecerán aquí"
                 android:textSize="16sp"
                 />
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Vacunas registradas"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/spVacunas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/txtDetalleVacuna"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Busca una mascota para consultar sus vacunas."
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/btnEliminarVacuna"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Eliminar vacuna"
+                android:enabled="false"
+                android:visibility="gone" />
+
 
             <Button
                 android:id="@+id/btnEditarMascota"
