@@ -1,6 +1,13 @@
 package com.udh.apphuellitas.model;
 
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "mascotas")
 public class Mascota {
+    @PrimaryKey
+    @NonNull
     private String idMascota;
     private String idUsuario;
     private String nombre;

@@ -11,6 +11,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.udh.apphuellitas.model.AppDatabase;
+import com.udh.apphuellitas.model.Mascota;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,13 +21,12 @@ import org.json.JSONObject;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Registro extends MenuActivity {
 
-    // =====================================
     // 1. DATOS DE LA MASCOTA
-    // =====================================
-
     private EditText etNombreMascota;
     private EditText etRaza;
     private Spinner spEspecie;
@@ -38,10 +40,7 @@ public class Registro extends MenuActivity {
     private String fechaNacimiento = "";
     private String idMascotaActual = "";
 
-    // =====================================
     // 2. DATOS DE VACUNAS
-    // =====================================
-
     private EditText etNombreVacuna;
     private EditText etLoteVacuna;
 
@@ -50,20 +49,14 @@ public class Registro extends MenuActivity {
 
     private String fechaVacuna = "";
 
-    // =====================================
     // 3. DATOS DE DIETAS
-    // =====================================
-
     private EditText etMarcaAlimento;
     private EditText etRacionGramos;
     private EditText etFrecuenciaDiaria;
 
     private Button btnGuardarDieta;
 
-    // =====================================
     // 4. VISITAS VETERINARIAS
-    // =====================================
-
     private EditText etLugarVeterinaria;
     private EditText etMotivoVisita;
     private EditText etDiagnostico;
@@ -73,20 +66,17 @@ public class Registro extends MenuActivity {
 
     private String fechaVisita = "";
 
-    // =====================================
-    // 5. INICIAR ACTIVITY
-    // =====================================
+    private AppDatabase db;
+    private ExecutorService io;
 
+
+    // 5. INICIAR ACTIVITY
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // Cargar el contenido dentro del menú
         cargarContenido(R.layout.activity_registro);
-
-        // ---------------------------------
-        // Componentes de mascota
-        // ---------------------------------
 
         etNombreMascota =
                 findViewById(R.id.etNombreMascota);
@@ -157,12 +147,17 @@ public class Registro extends MenuActivity {
         btnGuardarVisita =
                 findViewById(R.id.btnGuardarVisita);
 
+        db = AppDatabase.getInstance(this);
+        io = Executors.newSingleThreadExecutor();
+
         // Configurar especies
         configurarEspecies();
 
         // ---------------------------------
         // Recuperar estado temporal
         // ---------------------------------
+
+
 
         if (savedInstanceState != null) {
 
@@ -194,8 +189,7 @@ public class Registro extends MenuActivity {
 
             if (!idMascotaActual.isEmpty()) {
                 txtEstadoRegistro.setText(
-                        "Mascota guardada. " +
-                                "Puedes agregar sus cuidados."
+                        "Mascota guardada. " +  "Puedes agregar sus cuidados."
                 );
 
                 // Evitar registrar accidentalmente
@@ -352,154 +346,60 @@ public class Registro extends MenuActivity {
     // =====================================
     // 8. GUARDAR MASCOTA
     // =====================================
-
     private void guardarMascota() {
 
-        String nombre = etNombreMascota
-                .getText().toString().trim();
+        String nombre = etNombreMascota.getText().toString().trim();
+        String raza = etRaza.getText().toString().trim();
+        String especie = spEspecie.getSelectedItem().toString();
 
-        String raza = etRaza
-                .getText().toString().trim();
+        if (nombre.isEmpty() || raza.isEmpty()
+                || spEspecie.getSelectedItemPosition() == 0
+                || fechaNacimiento.isEmpty()) {
 
-        int posicion = spEspecie
-                .getSelectedItemPosition();
-
-        // Validar nombre
-        if (nombre.isEmpty()) {
-
-            etNombreMascota.setError(
-                    "Ingrese el nombre de la mascota"
-            );
-
-            etNombreMascota.requestFocus();
+            Toast.makeText(this,
+                    "Complete todos los campos",
+                    Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Validar especie
-        if (posicion == 0) {
-
-            mostrarMensaje(
-                    "Seleccione una especie"
-            );
-
-            return;
-        }
-
-        // Validar raza
-        if (raza.isEmpty()) {
-
-            etRaza.setError(
-                    "Ingrese la raza o mestizo"
-            );
-
-            etRaza.requestFocus();
-            return;
-        }
-
-        // Validar nacimiento
-        if (fechaNacimiento.isEmpty()) {
-
-            mostrarMensaje(
-                    "Seleccione la fecha de nacimiento"
-            );
-
-            return;
-        }
-
-        String especie = spEspecie
-                .getSelectedItem().toString();
-
-        SharedPreferences prefs =
-                getSharedPreferences(
-                        "HuellitasPrefs",
-                        MODE_PRIVATE
-                );
-
-        // Usuario de la simulación
-        String usuario = prefs.getString(
-                "USUARIO",
-                ""
-        );
+        String usuario = getSharedPreferences(
+                "HuellitasPrefs", MODE_PRIVATE
+        ).getString("USUARIO", "");
 
         if (usuario.isEmpty()) {
-
-            mostrarMensaje(
-                    "Primero debe ingresar un usuario"
-            );
-
+            Toast.makeText(this,
+                    "Primero ingrese un usuario",
+                    Toast.LENGTH_SHORT).show();
             return;
         }
 
-        try {
+        String id = UUID.randomUUID().toString();
 
-            String nuevoId =
-                    UUID.randomUUID().toString();
+        Mascota mascota = new Mascota();
+        mascota.setIdMascota(id);
+        mascota.setIdUsuario(usuario);
+        mascota.setNombre(nombre);
+        mascota.setRaza(raza);
+        mascota.setEspecie(especie);
+        mascota.setFechaNacimiento(fechaNacimiento);
 
-            JSONObject mascota =
-                    new JSONObject();
+        io.execute(() -> {
+            try {
+                db.mascotaDao().insertar(mascota);
 
-            mascota.put("idMascota", nuevoId);
-            mascota.put("idUsuario", usuario);
-            mascota.put("nombre", nombre);
-            mascota.put("especie", especie);
-            mascota.put("raza", raza);
+                runOnUiThread(() -> {
+                    idMascotaActual = id;
+                    actualizarBotonesCuidados();
+                    bloquearFormularioMascota();
+                    txtEstadoRegistro.setText("Mascota registrada: " + nombre);
+                });
 
-            mascota.put(
-                    "fechaNacimiento",
-                    fechaNacimiento
-            );
-
-            // Recuperar mascotas registradas
-            String datos = prefs.getString(
-                    "MASCOTAS",
-                    "[]"
-            );
-
-            JSONArray mascotas =
-                    new JSONArray(datos);
-
-            mascotas.put(mascota);
-
-            boolean guardado = prefs.edit()
-                    .putString(
-                            "MASCOTAS",
-                            mascotas.toString()
-                    )
-                    .commit();
-
-            if (!guardado) {
-
-                txtEstadoRegistro.setText(
-                        "No se pudo guardar la mascota"
+            } catch (Exception e) {
+                runOnUiThread(() ->
+                        txtEstadoRegistro.setText("Error al guardar mascota")
                 );
-
-                return;
             }
-
-            // Asociar los futuros cuidados
-            // a esta mascota guardada
-            idMascotaActual = nuevoId;
-
-            actualizarBotonesCuidados();
-
-            // Evitar duplicados por pulsaciones
-            bloquearFormularioMascota();
-
-            txtEstadoRegistro.setText(
-                    "Mascota registrada: " + nombre +
-                            ". Ahora puedes registrar sus cuidados."
-            );
-
-            mostrarMensaje(
-                    "Mascota guardada correctamente"
-            );
-
-        } catch (JSONException e) {
-
-            txtEstadoRegistro.setText(
-                    "Error al procesar la mascota"
-            );
-        }
+        });
     }
 
     // =====================================
