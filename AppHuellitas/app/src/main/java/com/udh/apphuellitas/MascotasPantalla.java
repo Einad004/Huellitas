@@ -13,6 +13,7 @@ import androidx.core.view.WindowInsetsCompat;
 public class MascotasPantalla extends MenuActivity {
 
     private Button btnRegistrar;
+    private Button btnActualizar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +21,7 @@ public class MascotasPantalla extends MenuActivity {
         cargarContenido(R.layout.activity_mascotas);
 
         btnRegistrar = findViewById(R.id.btnRegistrar);
+        btnActualizar = findViewById(R.id.btnActualizar);
 
         btnRegistrar.setOnClickListener(v->{
             Intent intent = new Intent(
@@ -29,6 +31,16 @@ public class MascotasPantalla extends MenuActivity {
             startActivity(intent);
 
         });
+
+        btnActualizar.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    MascotasPantalla.this,
+                    BuscarMascota.class
+            );
+            startActivity(intent);
+        });
+
 
 
     }

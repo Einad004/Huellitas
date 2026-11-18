@@ -24,4 +24,5 @@ public interface MascotaDao {
 
     @Query("SELECT * FROM mascotas WHERE idMascota = :id")
     Mascota buscarPorId(String id);
+
 }
