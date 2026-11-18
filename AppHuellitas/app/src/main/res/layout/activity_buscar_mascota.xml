@@ -31,7 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:hint="Ingrese el ID de la mascota"
+                android:text="d5013061-7d5a-4a30-bfd7-2fa445d5dcbe"
                 android:inputType="text" />
 
             <Button
@@ -47,7 +47,24 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="Los datos aparecerán aquí"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                />
+
+            <Button
+                android:id="@+id/btnEditarMascota"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Actualizar mascota"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/btnEliminarMascota"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Eliminar mascota"
+                android:visibility="gone" />
 
         </LinearLayout>
     </ScrollView>
