@@ -31,7 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="29c4bdf3-e60c-414a-9371-771225e7918e"
+                android:text="c41693e6-cf5f-4fb1-8289-f0c075449a13"
                 android:inputType="text" />
 
             <Button
@@ -80,6 +80,35 @@
                 android:enabled="false"
                 android:visibility="gone" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Alimentación registrada"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/contenedorDietas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/txtDetalleDieta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Busca una mascota para consultar su alimentación."
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/btnEliminarDieta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Eliminar alimentación"
+                android:enabled="false"
+                android:visibility="gone" />
 
             <Button
                 android:id="@+id/btnEditarMascota"

@@ -1,27 +1,31 @@
+
 package com.udh.apphuellitas.model;
 
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "dietas")
 public class Dieta {
-    private String idDieta;
+
+    @PrimaryKey
+    @NonNull
+    private String idDieta = "";
+
     private String idMascota;
     private String marcaAlimento;
-    private int racionGramos;
+    private double racionGramos;
     private int frecuenciaDiaria;
 
-    public Dieta() { }
-
-    public Dieta(String idDieta, String idMascota, String marcaAlimento, int racionGramos, int frecuenciaDiaria) {
-        this.idDieta = idDieta;
-        this.idMascota = idMascota;
-        this.marcaAlimento = marcaAlimento;
-        this.racionGramos = racionGramos;
-        this.frecuenciaDiaria = frecuenciaDiaria;
+    public Dieta() {
     }
 
+    @NonNull
     public String getIdDieta() {
         return idDieta;
     }
 
-    public void setIdDieta(String idDieta) {
+    public void setIdDieta(@NonNull String idDieta) {
         this.idDieta = idDieta;
     }
 
@@ -41,11 +45,11 @@ public class Dieta {
         this.marcaAlimento = marcaAlimento;
     }
 
-    public int getRacionGramos() {
+    public double getRacionGramos() {
         return racionGramos;
     }
 
-    public void setRacionGramos(int racionGramos) {
+    public void setRacionGramos(double racionGramos) {
         this.racionGramos = racionGramos;
     }
 

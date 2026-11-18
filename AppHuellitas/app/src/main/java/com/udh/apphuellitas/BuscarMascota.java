@@ -10,10 +10,12 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.udh.apphuellitas.model.AppDatabase;
+import com.udh.apphuellitas.model.Dieta;
 import com.udh.apphuellitas.model.Mascota;
 import com.udh.apphuellitas.model.Vacuna;
 
@@ -43,6 +45,14 @@ public class BuscarMascota extends MenuActivity {
     private List<Vacuna> vacunas = new ArrayList<>();
     private Vacuna vacunaSeleccionada;
 
+    private LinearLayout contenedorDietas;
+    private TextView txtDetalleDieta;
+    private Button btnEliminarDieta;
+
+    private List<Dieta> dietas = new ArrayList<>();
+    private Dieta dietaSeleccionada;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +70,11 @@ public class BuscarMascota extends MenuActivity {
         txtDetalleVacuna = findViewById(R.id.txtDetalleVacuna);
         btnEliminarVacuna = findViewById(R.id.btnEliminarVacuna);
 
+        contenedorDietas = findViewById(R.id.contenedorDietas);
+        txtDetalleDieta = findViewById(R.id.txtDetalleDieta);
+        btnEliminarDieta = findViewById(R.id.btnEliminarDieta);
+
+
         db = AppDatabase.getInstance(this);
         io = Executors.newSingleThreadExecutor();
 
@@ -69,7 +84,6 @@ public class BuscarMascota extends MenuActivity {
         btnEditarMascota.setOnClickListener(v -> {
 
             if (mascotaEncontrada == null) return;
-
             Intent intent = new Intent(
                     BuscarMascota.this,
                     Registro.class
@@ -87,6 +101,12 @@ public class BuscarMascota extends MenuActivity {
                 );
             }
 
+            if (dietaSeleccionada != null) {
+                intent.putExtra(
+                        "ID_DIETA",
+                        dietaSeleccionada.getIdDieta()
+                );
+            }
             startActivity(intent);
         });
 
@@ -125,6 +145,28 @@ public class BuscarMascota extends MenuActivity {
                     public void onNothingSelected(AdapterView<?> parent) {
                     }
                 });
+
+
+        btnEliminarDieta.setOnClickListener(v -> {
+
+            if (dietaSeleccionada == null ||
+                    mascotaEncontrada == null) {
+                return;
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Eliminar alimentación")
+                    .setMessage(
+                            "¿Deseas eliminar esta alimentación?"
+                    )
+                    .setPositiveButton(
+                            "Eliminar",
+                            (dialog, which) -> eliminarDieta()
+                    )
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+        });
+
 
     }
 
@@ -184,6 +226,7 @@ public class BuscarMascota extends MenuActivity {
                         );
 
                         listarVacunas(mascota.getIdMascota());
+                        listarDietas(mascota.getIdMascota());
 
                         btnEditarMascota.setVisibility(
                                 View.VISIBLE
@@ -358,6 +401,162 @@ public class BuscarMascota extends MenuActivity {
                                 "Error al consultar las vacunas"
                         )
                 );
+            }
+        });
+    }
+
+    // DIETAS
+
+    private void listarDietas(String idMascota) {
+
+        dietaSeleccionada = null;
+        dietas.clear();
+        btnEliminarDieta.setEnabled(false);
+
+        contenedorDietas.removeAllViews();
+        txtDetalleDieta.setText("Cargando alimentación...");
+
+        io.execute(() -> {
+
+            try {
+
+                List<Dieta> lista = db.dietaDao()
+                        .listarPorMascota(idMascota);
+
+                runOnUiThread(() -> {
+
+                    // Evitar mostrar dietas de otra búsqueda
+                    if (mascotaEncontrada == null ||
+                            !idMascota.equals(
+                                    mascotaEncontrada.getIdMascota())) {
+                        return;
+                    }
+
+                    dietas = lista;
+                    contenedorDietas.removeAllViews();
+
+                    if (dietas.isEmpty()) {
+
+                        txtDetalleDieta.setText(
+                                "Esta mascota no tiene alimentación registrada."
+                        );
+                        return;
+                    }
+
+                    txtDetalleDieta.setText(
+                            "Selecciona una alimentación para ver sus datos."
+                    );
+
+                    for (Dieta dieta : dietas) {
+
+                        TextView item = new TextView(this);
+
+                        item.setText(
+                                dieta.getMarcaAlimento() +
+                                        " | " + dieta.getRacionGramos() +
+                                        " g | " + dieta.getFrecuenciaDiaria() +
+                                        " veces al día"
+                        );
+
+                        item.setTextSize(16);
+                        item.setPadding(12, 20, 12, 20);
+
+                        item.setOnClickListener(v -> {
+
+                            dietaSeleccionada = dieta;
+
+                            txtDetalleDieta.setText(
+                                    "Alimentación: " +
+                                            dieta.getMarcaAlimento() +
+                                            "\nRación: " +
+                                            dieta.getRacionGramos() + " g" +
+                                            "\nFrecuencia: " +
+                                            dieta.getFrecuenciaDiaria() +
+                                            " veces al día"
+                            );
+
+                            btnEliminarDieta.setEnabled(true);
+                        });
+
+                        contenedorDietas.addView(item);
+                    }
+                });
+
+            } catch (Exception e) {
+
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al listar dietas",
+                        e
+                );
+
+                runOnUiThread(() ->
+                        txtDetalleDieta.setText(
+                                "Error al consultar alimentación"
+                        )
+                );
+            }
+        });
+    }
+
+    // Eliminar Dieta
+
+    private void eliminarDieta() {
+
+        if (dietaSeleccionada == null ||
+                mascotaEncontrada == null) {
+            return;
+        }
+
+        Dieta dieta = dietaSeleccionada;
+        String idMascota = mascotaEncontrada.getIdMascota();
+
+        btnEliminarDieta.setEnabled(false);
+
+        io.execute(() -> {
+
+            try {
+
+                int filas = db.dietaDao().eliminar(dieta);
+
+                runOnUiThread(() -> {
+
+                    if (filas > 0) {
+
+                        dietaSeleccionada = null;
+
+                        txtDetalleDieta.setText(
+                                "Alimentación eliminada correctamente"
+                        );
+
+                        listarDietas(idMascota);
+
+                    } else {
+
+                        txtDetalleDieta.setText(
+                                "No se encontró la alimentación"
+                        );
+
+                        btnEliminarDieta.setEnabled(true);
+                    }
+                });
+
+            } catch (Exception e) {
+
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al eliminar dieta",
+                        e
+                );
+
+                runOnUiThread(() -> {
+
+                    txtDetalleDieta.setText(
+                            "Error al eliminar alimentación"
+                    );
+
+                    btnEliminarDieta.setEnabled(true);
+                });
             }
         });
     }

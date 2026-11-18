@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.udh.apphuellitas.model.AppDatabase;
+import com.udh.apphuellitas.model.Dieta;
 import com.udh.apphuellitas.model.Mascota;
 import com.udh.apphuellitas.model.Vacuna;
 
@@ -63,6 +64,7 @@ public class Registro extends MenuActivity {
     private boolean modoEdicion = false;
     private Mascota mascotaEditar;
     private Vacuna vacunaEditar;
+    private Dieta dietaEditar;
 
 
     // 5. INICIAR ACTIVITY
@@ -176,9 +178,16 @@ public class Registro extends MenuActivity {
             }
         });
 
-        btnGuardarDieta.setOnClickListener(
-                v -> guardarDieta()
-        );
+
+        btnGuardarDieta.setOnClickListener(v -> {
+
+            if (dietaEditar != null) {
+                actualizarDieta();
+            } else {
+                guardarDieta();
+            }
+        });
+
 
         btnFechaVisita.setOnClickListener(
                 v -> seleccionarFechaVisita()
@@ -443,6 +452,12 @@ public class Registro extends MenuActivity {
                         cargarVacuna(idVacuna);
                     }
 
+                    String idDieta = getIntent().getStringExtra("ID_DIETA");
+
+                    if (idDieta != null && !idDieta.isEmpty()) {
+                        cargarDieta(idDieta);
+                    }
+
 
                 });
 
@@ -693,10 +708,265 @@ public class Registro extends MenuActivity {
         });
     }
 
-    // GUARDAR DIETA
+    // DIETA
+    // Guardar Dieta
     private void guardarDieta() {
 
+        if (!existeMascotaActual()) {
+            return;
+        }
+
+        String marca = etMarcaAlimento
+                .getText().toString().trim();
+
+        String racion = etRacionGramos
+                .getText().toString().trim();
+
+        String frecuencia = etFrecuenciaDiaria
+                .getText().toString().trim();
+
+        if (marca.isEmpty() || racion.isEmpty()
+                || frecuencia.isEmpty()) {
+
+            mostrarMensaje(
+                    "Complete los datos de alimentación"
+            );
+            return;
+        }
+
+        double gramos;
+        int comidas;
+
+        try {
+            gramos = Double.parseDouble(racion);
+            comidas = Integer.parseInt(frecuencia);
+
+        } catch (NumberFormatException e) {
+
+            mostrarMensaje("Ingrese cantidades válidas");
+            return;
+        }
+
+        if (!Double.isFinite(gramos)
+                || gramos <= 0 || comidas <= 0) {
+
+            mostrarMensaje(
+                    "Las cantidades deben ser mayores a cero"
+            );
+            return;
+        }
+
+        Dieta dieta = new Dieta();
+
+        dieta.setIdDieta(UUID.randomUUID().toString());
+        dieta.setIdMascota(idMascotaActual);
+        dieta.setMarcaAlimento(marca);
+        dieta.setRacionGramos(gramos);
+        dieta.setFrecuenciaDiaria(comidas);
+
+        btnGuardarDieta.setEnabled(false);
+
+        io.execute(() -> {
+
+            try {
+
+                db.dietaDao().insertar(dieta);
+
+                runOnUiThread(() -> {
+
+                    mostrarMensaje(
+                            "Alimentación guardada correctamente"
+                    );
+
+                    etMarcaAlimento.setText("");
+                    etRacionGramos.setText("");
+                    etFrecuenciaDiaria.setText("");
+
+                    btnGuardarDieta.setEnabled(true);
+                });
+
+            } catch (Exception e) {
+
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al guardar dieta",
+                        e
+                );
+
+                runOnUiThread(() -> {
+
+                    mostrarMensaje(
+                            "Error al guardar alimentación"
+                    );
+
+                    btnGuardarDieta.setEnabled(true);
+                });
+            }
+        });
     }
+
+    // Cargar Dieta
+
+    private void cargarDieta(String id) {
+
+        io.execute(() -> {
+
+            try {
+
+                Dieta dieta = db.dietaDao().buscarPorId(id);
+
+                runOnUiThread(() -> {
+
+                    if (dieta == null) {
+                        mostrarMensaje("Alimentación no encontrada");
+                        return;
+                    }
+
+                    if (!idMascotaActual.equals(
+                            dieta.getIdMascota())) {
+
+                        mostrarMensaje(
+                                "La alimentación no pertenece a esta mascota"
+                        );
+                        return;
+                    }
+
+                    dietaEditar = dieta;
+
+                    etMarcaAlimento.setText(
+                            dieta.getMarcaAlimento()
+                    );
+
+                    etRacionGramos.setText(
+                            String.valueOf(dieta.getRacionGramos())
+                    );
+
+                    etFrecuenciaDiaria.setText(
+                            String.valueOf(dieta.getFrecuenciaDiaria())
+                    );
+
+                    btnGuardarDieta.setText(
+                            "Actualizar alimentación"
+                    );
+
+                    btnGuardarDieta.setEnabled(true);
+                });
+
+            } catch (Exception e) {
+
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al cargar dieta",
+                        e
+                );
+
+                runOnUiThread(() ->
+                        mostrarMensaje(
+                                "Error al cargar alimentación"
+                        )
+                );
+            }
+        });
+    }
+
+    // Actualizar Dieta
+
+    private void actualizarDieta() {
+
+        if (dietaEditar == null) {
+            return;
+        }
+
+        String marca = etMarcaAlimento
+                .getText().toString().trim();
+
+        String racion = etRacionGramos
+                .getText().toString().trim();
+
+        String frecuencia = etFrecuenciaDiaria
+                .getText().toString().trim();
+
+        if (marca.isEmpty() || racion.isEmpty()
+                || frecuencia.isEmpty()) {
+
+            mostrarMensaje("Complete los datos");
+            return;
+        }
+
+        double gramos;
+        int comidas;
+
+        try {
+
+            gramos = Double.parseDouble(racion);
+            comidas = Integer.parseInt(frecuencia);
+
+        } catch (NumberFormatException e) {
+
+            mostrarMensaje("Ingrese números válidos");
+            return;
+        }
+
+        if (!Double.isFinite(gramos)
+                || gramos <= 0 || comidas <= 0) {
+
+            mostrarMensaje("Ingrese cantidades mayores a cero");
+            return;
+        }
+
+        dietaEditar.setMarcaAlimento(marca);
+        dietaEditar.setRacionGramos(gramos);
+        dietaEditar.setFrecuenciaDiaria(comidas);
+
+        btnGuardarDieta.setEnabled(false);
+
+        io.execute(() -> {
+
+            try {
+
+                int filas = db.dietaDao()
+                        .actualizar(dietaEditar);
+
+                runOnUiThread(() -> {
+
+                    if (filas > 0) {
+
+                        mostrarMensaje(
+                                "Alimentación actualizada correctamente"
+                        );
+
+                        finish();
+
+                    } else {
+
+                        mostrarMensaje(
+                                "No se encontró la alimentación"
+                        );
+
+                        btnGuardarDieta.setEnabled(true);
+                    }
+                });
+
+            } catch (Exception e) {
+
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al actualizar dieta",
+                        e
+                );
+
+                runOnUiThread(() -> {
+
+                    mostrarMensaje(
+                            "Error al actualizar alimentación"
+                    );
+
+                    btnGuardarDieta.setEnabled(true);
+                });
+            }
+        });
+    }
+
 
     // =====================================
     // 11. GUARDAR VISITA VETERINARIA
