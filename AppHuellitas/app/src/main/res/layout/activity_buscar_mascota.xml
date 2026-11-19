@@ -31,7 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="c41693e6-cf5f-4fb1-8289-f0c075449a13"
+                android:text="21db873a-6ab0-426e-829b-b07578b2b5b4"
                 android:inputType="text" />
 
             <Button
@@ -94,6 +94,37 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
 
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Visitas veterinarias"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/contenedorVisitas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/txtDetalleVisita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Busca una mascota para consultar sus visitas."
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/btnEliminarVisita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Eliminar visita veterinaria"
+                android:enabled="false"
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/txtDetalleDieta"
                 android:layout_width="match_parent"
@@ -115,7 +146,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Actualizar mascota"
+                android:text="Actualizar mascota y cuidados"
                 android:visibility="gone" />
 
             <Button

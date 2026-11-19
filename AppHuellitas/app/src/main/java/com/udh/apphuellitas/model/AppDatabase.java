@@ -6,14 +6,14 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-
 @Database(
         entities = {
                 Mascota.class,
                 Vacuna.class,
-                Dieta.class
+                Dieta.class,
+                VisitaVeterinaria.class
         },
-        version = 3,
+        version = 4,
         exportSchema = false
 )
 
@@ -22,6 +22,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract MascotaDao mascotaDao();
     public abstract VacunaDao vacunaDao();
     public abstract DietaDao dietaDao();
+    public abstract VisitaVeterinariaDao visitaVeterinariaDao();
 
     private static volatile AppDatabase INSTANCE;
 

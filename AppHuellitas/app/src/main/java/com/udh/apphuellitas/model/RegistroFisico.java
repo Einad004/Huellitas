@@ -1,7 +1,8 @@
 package com.udh.apphuellitas.model;
 
-import java.util.Date;
+import androidx.room.Entity;
 
+import java.util.Date;
 public class RegistroFisico {
     private String idRegistro;
     private String idMascota;

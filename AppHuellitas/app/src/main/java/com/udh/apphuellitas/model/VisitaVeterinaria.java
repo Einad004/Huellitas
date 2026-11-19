@@ -1,31 +1,31 @@
 package com.udh.apphuellitas.model;
 
-import java.util.Date;
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
+@Entity(tableName = "visitas_veterinarias")
 public class VisitaVeterinaria {
-    private String idVisita;
+
+    @PrimaryKey
+    @NonNull
+    private String idVisita = "";
+
     private String idMascota;
-    private Date fecha;
+    private String fecha;
     private String lugar;
     private String motivo;
     private String diagnostico;
 
-    public VisitaVeterinaria() {}
-
-    public VisitaVeterinaria(String idVisita, String idMascota, Date fecha, String lugar, String motivo, String diagnostico) {
-        this.idVisita = idVisita;
-        this.idMascota = idMascota;
-        this.fecha = fecha;
-        this.lugar = lugar;
-        this.motivo = motivo;
-        this.diagnostico = diagnostico;
+    public VisitaVeterinaria() {
     }
 
+    @NonNull
     public String getIdVisita() {
         return idVisita;
     }
 
-    public void setIdVisita(String idVisita) {
+    public void setIdVisita(@NonNull String idVisita) {
         this.idVisita = idVisita;
     }
 
@@ -37,11 +37,11 @@ public class VisitaVeterinaria {
         this.idMascota = idMascota;
     }
 
-    public Date getFecha() {
+    public String getFecha() {
         return fecha;
     }
 
-    public void setFecha(Date fecha) {
+    public void setFecha(String fecha) {
         this.fecha = fecha;
     }
 

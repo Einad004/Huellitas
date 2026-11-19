@@ -18,6 +18,7 @@ import com.udh.apphuellitas.model.AppDatabase;
 import com.udh.apphuellitas.model.Dieta;
 import com.udh.apphuellitas.model.Mascota;
 import com.udh.apphuellitas.model.Vacuna;
+import com.udh.apphuellitas.model.VisitaVeterinaria;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,6 @@ public class BuscarMascota extends MenuActivity {
     private Mascota mascotaEncontrada;
 
     // VACUNA
-
     private Spinner spVacunas;
     private TextView txtDetalleVacuna;
     private Button btnEliminarVacuna;
@@ -48,10 +48,14 @@ public class BuscarMascota extends MenuActivity {
     private LinearLayout contenedorDietas;
     private TextView txtDetalleDieta;
     private Button btnEliminarDieta;
-
     private List<Dieta> dietas = new ArrayList<>();
     private Dieta dietaSeleccionada;
 
+    private LinearLayout contenedorVisitas;
+    private TextView txtDetalleVisita;
+    private Button btnEliminarVisita;
+    private List<VisitaVeterinaria> visitas = new ArrayList<>();
+    private VisitaVeterinaria visitaSeleccionada;
 
 
     @Override
@@ -74,41 +78,78 @@ public class BuscarMascota extends MenuActivity {
         txtDetalleDieta = findViewById(R.id.txtDetalleDieta);
         btnEliminarDieta = findViewById(R.id.btnEliminarDieta);
 
+        contenedorVisitas = findViewById(R.id.contenedorVisitas);
+        txtDetalleVisita = findViewById(R.id.txtDetalleVisita);
+        btnEliminarVisita = findViewById(R.id.btnEliminarVisita);
 
         db = AppDatabase.getInstance(this);
         io = Executors.newSingleThreadExecutor();
 
         btnBuscarId.setOnClickListener(v -> buscarMascota());
 
-
         btnEditarMascota.setOnClickListener(v -> {
 
-            if (mascotaEncontrada == null) return;
+            if (mascotaEncontrada == null) {
+                return;
+            }
             Intent intent = new Intent(
                     BuscarMascota.this,
                     Registro.class
             );
-
             intent.putExtra(
                     "ID_MASCOTA",
                     mascotaEncontrada.getIdMascota()
             );
 
-            if (vacunaSeleccionada != null) {
+            // Vacuna seleccionada o primera disponible
+            Vacuna vacuna = vacunaSeleccionada;
+            if (vacuna == null && !vacunas.isEmpty()) {
+                vacuna = vacunas.get(0);
+            }
+            if (vacuna != null) {
                 intent.putExtra(
                         "ID_VACUNA",
-                        vacunaSeleccionada.getIdVacuna()
+                        vacuna.getIdVacuna()
                 );
             }
 
-            if (dietaSeleccionada != null) {
+            // Dieta seleccionada o primera disponible
+            Dieta dieta = dietaSeleccionada;
+            if (dieta == null && !dietas.isEmpty()) {
+                dieta = dietas.get(0);
+            }
+            if (dieta != null) {
                 intent.putExtra(
                         "ID_DIETA",
-                        dietaSeleccionada.getIdDieta()
+                        dieta.getIdDieta()
+                );
+            }
+
+
+            // Visita seleccionada o primera disponible
+            VisitaVeterinaria visita = visitaSeleccionada;
+            if (visita == null && !visitas.isEmpty()) {
+                visita = visitas.get(0);
+            }
+            if (visita != null) {
+                intent.putExtra(
+                        "ID_VISITA",
+                        visita.getIdVisita()
+                );
+                android.util.Log.d(
+                        "HUELLITAS",
+                        "Enviando ID_VISITA: " +
+                                visita.getIdVisita()
+                );
+            } else {
+                android.util.Log.d(
+                        "HUELLITAS",
+                        "Esta mascota no tiene visitas cargadas"
                 );
             }
             startActivity(intent);
         });
+
 
         btnEliminarMascota.setOnClickListener(v -> {
 
@@ -167,6 +208,27 @@ public class BuscarMascota extends MenuActivity {
                     .show();
         });
 
+        btnEliminarVisita.setOnClickListener(v -> {
+
+            if (visitaSeleccionada == null ||
+                    mascotaEncontrada == null) {
+                return;
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Eliminar visita")
+                    .setMessage(
+                            "¿Deseas eliminar esta visita veterinaria?"
+                    )
+                    .setPositiveButton(
+                            "Eliminar",
+                            (dialog, which) -> eliminarVisita()
+                    )
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+        });
+
+
 
     }
 
@@ -178,8 +240,22 @@ public class BuscarMascota extends MenuActivity {
 
         mascotaEncontrada = null;
 
+        visitaSeleccionada = null;
+        visitas = new ArrayList<>();
+
+        btnEliminarVisita.setEnabled(false);
+
+        contenedorVisitas.removeAllViews();
+
+        txtDetalleVisita.setText(
+                "Busca una mascota para consultar sus visitas."
+        );
+
         btnEditarMascota.setVisibility(View.GONE);
         btnEliminarMascota.setVisibility(View.GONE);
+        btnEliminarVacuna.setVisibility(View.GONE);
+        btnEliminarVisita.setVisibility(View.GONE);
+        btnEliminarDieta.setVisibility(View.GONE);
 
         if (id.isEmpty()) {
             etBuscarId.setError("Ingrese un ID");
@@ -227,6 +303,7 @@ public class BuscarMascota extends MenuActivity {
 
                         listarVacunas(mascota.getIdMascota());
                         listarDietas(mascota.getIdMascota());
+                        listarVisitas(mascota.getIdMascota());
 
                         btnEditarMascota.setVisibility(
                                 View.VISIBLE
@@ -500,7 +577,6 @@ public class BuscarMascota extends MenuActivity {
     }
 
     // Eliminar Dieta
-
     private void eliminarDieta() {
 
         if (dietaSeleccionada == null ||
@@ -561,6 +637,164 @@ public class BuscarMascota extends MenuActivity {
         });
     }
 
+    // VISITAS VETERINARIAS
+    // Listar Visitas
+    private void listarVisitas(String idMascota) {
+
+        visitaSeleccionada = null;
+        btnEliminarVisita.setEnabled(false);
+
+        contenedorVisitas.removeAllViews();
+
+        txtDetalleVisita.setText(
+                "Cargando visitas veterinarias..."
+        );
+
+        io.execute(() -> {
+
+            try {
+
+                List<VisitaVeterinaria> lista =
+                        db.visitaVeterinariaDao()
+                                .listarPorMascota(idMascota);
+
+                android.util.Log.d(
+                        "HUELLITAS",
+                        "Visitas encontradas: " + lista.size()
+                );
+
+                runOnUiThread(() -> {
+
+                    if (mascotaEncontrada == null ||
+                            !idMascota.equals(
+                                    mascotaEncontrada.getIdMascota())) {
+                        return;
+                    }
+
+                    visitas = lista;
+                    contenedorVisitas.removeAllViews();
+
+                    if (visitas.isEmpty()) {
+
+                        txtDetalleVisita.setText(
+                                "Esta mascota no tiene visitas registradas."
+                        );
+                        return;
+                    }
+
+                    txtDetalleVisita.setText(
+                            "Selecciona una visita para ver sus datos."
+                    );
+
+                    for (VisitaVeterinaria visita : visitas) {
+
+                        TextView item = new TextView(this);
+
+                        item.setText(
+                                "Fecha: " + visita.getFecha() +
+                                        "\nLugar: " + visita.getLugar() +
+                                        "\nMotivo: " + visita.getMotivo()
+                        );
+
+                        item.setTextSize(16);
+                        item.setPadding(20, 24, 20, 24);
+
+                        item.setOnClickListener(v -> {
+
+                            visitaSeleccionada = visita;
+
+                            txtDetalleVisita.setText(
+                                    "Fecha: " + visita.getFecha() +
+                                            "\nLugar: " + visita.getLugar() +
+                                            "\nMotivo: " + visita.getMotivo() +
+                                            "\nDiagnóstico: " +
+                                            visita.getDiagnostico()
+                            );
+
+                            btnEliminarVisita.setEnabled(true);
+                        });
+
+                        contenedorVisitas.addView(item);
+                    }
+                });
+
+            } catch (Exception e) {
+
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al listar visitas",
+                        e
+                );
+
+                runOnUiThread(() ->
+                        txtDetalleVisita.setText(
+                                "Error al consultar visitas"
+                        )
+                );
+            }
+        });
+    }
+
+    // Eliminar Visita
+
+    private void eliminarVisita() {
+
+        if (visitaSeleccionada == null ||
+                mascotaEncontrada == null) {
+            return;
+        }
+
+        VisitaVeterinaria visita = visitaSeleccionada;
+
+        String idMascota =
+                mascotaEncontrada.getIdMascota();
+
+        btnEliminarVisita.setEnabled(false);
+
+        io.execute(() -> {
+
+            try {
+
+                int filas = db.visitaVeterinariaDao()
+                        .eliminar(visita);
+
+                runOnUiThread(() -> {
+
+                    if (filas > 0) {
+
+                        visitaSeleccionada = null;
+
+                        listarVisitas(idMascota);
+
+                    } else {
+
+                        txtDetalleVisita.setText(
+                                "No se encontró la visita"
+                        );
+
+                        btnEliminarVisita.setEnabled(true);
+                    }
+                });
+
+            } catch (Exception e) {
+
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al eliminar visita",
+                        e
+                );
+
+                runOnUiThread(() -> {
+
+                    txtDetalleVisita.setText(
+                            "Error al eliminar visita"
+                    );
+
+                    btnEliminarVisita.setEnabled(true);
+                });
+            }
+        });
+    }
 
     @Override
     protected void onDestroy() {

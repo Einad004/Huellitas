@@ -15,6 +15,7 @@ import com.udh.apphuellitas.model.AppDatabase;
 import com.udh.apphuellitas.model.Dieta;
 import com.udh.apphuellitas.model.Mascota;
 import com.udh.apphuellitas.model.Vacuna;
+import com.udh.apphuellitas.model.VisitaVeterinaria;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -65,6 +66,7 @@ public class Registro extends MenuActivity {
     private Mascota mascotaEditar;
     private Vacuna vacunaEditar;
     private Dieta dietaEditar;
+    private VisitaVeterinaria visitaEditar;
 
 
     // 5. INICIAR ACTIVITY
@@ -104,6 +106,34 @@ public class Registro extends MenuActivity {
 
         db = AppDatabase.getInstance(this);
         io = Executors.newSingleThreadExecutor();
+
+
+        android.util.Log.d(
+                "HUELLITAS",
+                "ID_MASCOTA: " +
+                        getIntent().getStringExtra("ID_MASCOTA")
+        );
+
+        android.util.Log.d(
+                "HUELLITAS",
+                "ID_VACUNA: " +
+                        getIntent().getStringExtra("ID_VACUNA")
+        );
+
+        android.util.Log.d(
+                "HUELLITAS",
+                "ID_DIETA: " +
+                        getIntent().getStringExtra("ID_DIETA")
+        );
+
+        android.util.Log.d(
+                "HUELLITAS",
+                "ID_VISITA recibido: " +
+                        getIntent().getStringExtra("ID_VISITA")
+        );
+
+
+
 
         configurarEspecies();
 
@@ -193,9 +223,15 @@ public class Registro extends MenuActivity {
                 v -> seleccionarFechaVisita()
         );
 
-        btnGuardarVisita.setOnClickListener(
-                v -> guardarVisita()
-        );
+
+        btnGuardarVisita.setOnClickListener(v -> {
+            if (visitaEditar != null) {
+                actualizarVisita();
+            } else {
+                guardarVisita();
+            }
+        });
+
     }
 
     // CONFIGURAR ESPECIES
@@ -363,6 +399,7 @@ public class Registro extends MenuActivity {
     }
 
     // CARGAR DATOS
+
     private void cargarDatosMascota(String id) {
 
         btnGuardarMascota.setEnabled(false);
@@ -370,6 +407,7 @@ public class Registro extends MenuActivity {
         io.execute(() -> {
 
             try {
+
                 Mascota mascota =
                         db.mascotaDao().buscarPorId(id);
 
@@ -384,16 +422,16 @@ public class Registro extends MenuActivity {
                             !usuario.equals(mascota.getIdUsuario())) {
 
                         txtEstadoRegistro.setText(
-                                "Mascota no encontrada"
+                                "Mascota no encontrada o no pertenece al usuario"
                         );
                         return;
                     }
 
-                    // Guardar la mascota encontrada
+                    // 1. Identificar la mascota
                     mascotaEditar = mascota;
                     idMascotaActual = mascota.getIdMascota();
 
-                    // Colocar datos en el formulario
+                    // 2. Cargar sus datos
                     etNombreMascota.setText(
                             mascota.getNombre()
                     );
@@ -409,7 +447,6 @@ public class Registro extends MenuActivity {
                             fechaNacimiento
                     );
 
-                    // Seleccionar especie
                     for (int i = 0;
                          i < spEspecie.getCount();
                          i++) {
@@ -423,17 +460,6 @@ public class Registro extends MenuActivity {
                         }
                     }
 
-                    // Cambiar el texto del botón
-                    btnGuardarMascota.setText("Actualizar mascota");
-                    btnGuardarMascota.setEnabled(true);
-
-                    actualizarBotonesCuidados();
-
-                    txtEstadoRegistro.setText(
-                            "Editando: " + mascota.getNombre()
-                    );
-
-
                     btnGuardarMascota.setText(
                             "Actualizar mascota"
                     );
@@ -446,16 +472,28 @@ public class Registro extends MenuActivity {
                             "Editando: " + mascota.getNombre()
                     );
 
+                    // Cargar vacuna seleccionada
                     String idVacuna = getIntent().getStringExtra("ID_VACUNA");
 
                     if (idVacuna != null && !idVacuna.isEmpty()) {
                         cargarVacuna(idVacuna);
                     }
 
+                    // Cargar alimentación seleccionada
                     String idDieta = getIntent().getStringExtra("ID_DIETA");
-
                     if (idDieta != null && !idDieta.isEmpty()) {
                         cargarDieta(idDieta);
+                    }
+
+                    // Cargar visita veterinaria seleccionada
+                    String idVisita = getIntent().getStringExtra("ID_VISITA");
+                    if (idVisita != null && !idVisita.isEmpty()) {
+                        cargarVisita(idVisita);
+                    } else {
+                        android.util.Log.d(
+                                "HUELLITAS",
+                                "No se recibió ID_VISITA"
+                        );
                     }
 
 
@@ -463,14 +501,21 @@ public class Registro extends MenuActivity {
 
             } catch (Exception e) {
 
-                runOnUiThread(() -> {
-                    txtEstadoRegistro.setText(
-                            "Error al cargar los datos"
-                    );
-                });
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al cargar mascota",
+                        e
+                );
+
+                runOnUiThread(() ->
+                        txtEstadoRegistro.setText(
+                                "Error al cargar datos de mascota"
+                        )
+                );
             }
         });
     }
+
 
     // Actualizar Mascota
     private void actualizarMascota() {
@@ -620,6 +665,7 @@ public class Registro extends MenuActivity {
                     return;
                 }
 
+
                 vacunaEditar = vacuna;
 
                 etNombreVacuna.setText(
@@ -631,10 +677,15 @@ public class Registro extends MenuActivity {
                 );
 
                 fechaVacuna = vacuna.getFechaAplicacion();
+
                 btnFechaVacuna.setText(fechaVacuna);
 
+                btnGuardarVacuna.setText(
+                        "Actualizar vacuna"
+                );
+
                 btnGuardarVacuna.setEnabled(true);
-                btnGuardarVacuna.setText("Actualizar vacuna");
+
             });
         });
     }
@@ -831,6 +882,7 @@ public class Registro extends MenuActivity {
                         return;
                     }
 
+
                     dietaEditar = dieta;
 
                     etMarcaAlimento.setText(
@@ -850,6 +902,7 @@ public class Registro extends MenuActivity {
                     );
 
                     btnGuardarDieta.setEnabled(true);
+
                 });
 
             } catch (Exception e) {
@@ -968,17 +1021,248 @@ public class Registro extends MenuActivity {
     }
 
 
-    // =====================================
-    // 11. GUARDAR VISITA VETERINARIA
-    // =====================================
 
+    // VISITA VETERINARIA
+
+    // Guardar Visita Veterinaria
     private void guardarVisita() {
+
+        if (!existeMascotaActual()) {
+            return;
+        }
+
+        String lugar = etLugarVeterinaria
+                .getText().toString().trim();
+
+        String motivo = etMotivoVisita
+                .getText().toString().trim();
+
+        String diagnostico = etDiagnostico
+                .getText().toString().trim();
+
+        if (lugar.isEmpty() || motivo.isEmpty()
+                || diagnostico.isEmpty()
+                || fechaVisita.isEmpty()) {
+
+            mostrarMensaje(
+                    "Complete los datos de la visita"
+            );
+            return;
+        }
+
+        VisitaVeterinaria visita =
+                new VisitaVeterinaria();
+
+        visita.setIdVisita(
+                UUID.randomUUID().toString()
+        );
+
+        visita.setIdMascota(idMascotaActual);
+        visita.setLugar(lugar);
+        visita.setMotivo(motivo);
+        visita.setDiagnostico(diagnostico);
+        visita.setFecha(fechaVisita);
+
+        btnGuardarVisita.setEnabled(false);
+
+        io.execute(() -> {
+
+            try {
+
+                db.visitaVeterinariaDao().insertar(visita);
+
+                runOnUiThread(() -> {
+
+                    mostrarMensaje(
+                            "Visita registrada correctamente"
+                    );
+
+                    etLugarVeterinaria.setText("");
+                    etMotivoVisita.setText("");
+                    etDiagnostico.setText("");
+
+                    fechaVisita = "";
+                    btnFechaVisita.setText(
+                            "Fecha de visita"
+                    );
+
+                    btnGuardarVisita.setEnabled(true);
+                });
+
+            } catch (Exception e) {
+
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al guardar visita",
+                        e
+                );
+
+                runOnUiThread(() -> {
+                    mostrarMensaje(
+                            "Error al guardar visita"
+                    );
+
+                    btnGuardarVisita.setEnabled(true);
+                });
+            }
+        });
     }
 
-    // =====================================
-    // 12. GUARDADO GENERAL DE JSON
-    // =====================================
+    // Cargar Visita Veterinaria
+    private void cargarVisita(String id) {
 
+        btnGuardarVisita.setEnabled(false);
+
+        io.execute(() -> {
+
+            try {
+
+                VisitaVeterinaria visita =
+                        db.visitaVeterinariaDao()
+                                .buscarPorId(id);
+
+                runOnUiThread(() -> {
+
+                    if (visita == null) {
+                        mostrarMensaje(
+                                "Visita no encontrada"
+                        );
+                        return;
+                    }
+
+                    if (!idMascotaActual.equals(
+                            visita.getIdMascota())) {
+
+                        mostrarMensaje(
+                                "La visita no pertenece a esta mascota"
+                        );
+                        return;
+                    }
+
+                    visitaEditar = visita;
+
+                    etLugarVeterinaria.setText(
+                            visita.getLugar()
+                    );
+
+                    etMotivoVisita.setText(
+                            visita.getMotivo()
+                    );
+
+                    etDiagnostico.setText(
+                            visita.getDiagnostico()
+                    );
+
+                    fechaVisita = visita.getFecha();
+
+                    btnFechaVisita.setText(fechaVisita);
+
+                    btnGuardarVisita.setText(
+                            "Actualizar visita"
+                    );
+
+                    btnGuardarVisita.setEnabled(true);
+                });
+
+            } catch (Exception e) {
+
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al cargar visita",
+                        e
+                );
+
+                runOnUiThread(() ->
+                        mostrarMensaje(
+                                "Error al cargar visita"
+                        )
+                );
+            }
+        });
+    }
+
+    // Actualizar Visita Veterinaria
+
+    private void actualizarVisita() {
+
+        if (visitaEditar == null) {
+            return;
+        }
+
+        String lugar = etLugarVeterinaria
+                .getText().toString().trim();
+
+        String motivo = etMotivoVisita
+                .getText().toString().trim();
+
+        String diagnostico = etDiagnostico
+                .getText().toString().trim();
+
+        if (lugar.isEmpty() || motivo.isEmpty()
+                || diagnostico.isEmpty()
+                || fechaVisita.isEmpty()) {
+
+            mostrarMensaje(
+                    "Complete los datos de la visita"
+            );
+            return;
+        }
+
+        visitaEditar.setLugar(lugar);
+        visitaEditar.setMotivo(motivo);
+        visitaEditar.setDiagnostico(diagnostico);
+        visitaEditar.setFecha(fechaVisita);
+
+        btnGuardarVisita.setEnabled(false);
+
+        io.execute(() -> {
+
+            try {
+
+                int filas = db.visitaVeterinariaDao()
+                        .actualizar(visitaEditar);
+
+                runOnUiThread(() -> {
+
+                    if (filas > 0) {
+
+                        mostrarMensaje(
+                                "Visita actualizada correctamente"
+                        );
+
+                        finish();
+
+                    } else {
+
+                        mostrarMensaje(
+                                "No se encontró la visita"
+                        );
+
+                        btnGuardarVisita.setEnabled(true);
+                    }
+                });
+
+            } catch (Exception e) {
+
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al actualizar visita",
+                        e
+                );
+
+                runOnUiThread(() -> {
+
+                    mostrarMensaje(
+                            "Error al actualizar visita"
+                    );
+
+                    btnGuardarVisita.setEnabled(true);
+                });
+            }
+        });
+    }
+
+    // GUARDADO GENERAL DE JSON
     private boolean guardarDato(
             String clave,
             JSONObject nuevoRegistro) {
