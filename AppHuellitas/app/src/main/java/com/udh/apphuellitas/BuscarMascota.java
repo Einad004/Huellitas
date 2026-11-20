@@ -188,6 +188,26 @@ public class BuscarMascota extends MenuActivity {
                 });
 
 
+        btnEliminarVacuna.setOnClickListener(v -> {
+
+            if (vacunaSeleccionada == null ||
+                    mascotaEncontrada == null) {
+                return;
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Eliminar vacuna")
+                    .setMessage("¿Deseas eliminar esta vacuna?")
+                    .setPositiveButton(
+                            "Eliminar",
+                            (dialog, which) -> eliminarVacuna()
+                    )
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+        });
+
+
+
         btnEliminarDieta.setOnClickListener(v -> {
 
             if (dietaSeleccionada == null ||
@@ -253,9 +273,6 @@ public class BuscarMascota extends MenuActivity {
 
         btnEditarMascota.setVisibility(View.GONE);
         btnEliminarMascota.setVisibility(View.GONE);
-        btnEliminarVacuna.setVisibility(View.GONE);
-        btnEliminarVisita.setVisibility(View.GONE);
-        btnEliminarDieta.setVisibility(View.GONE);
 
         if (id.isEmpty()) {
             etBuscarId.setError("Ingrese un ID");
@@ -482,8 +499,57 @@ public class BuscarMascota extends MenuActivity {
         });
     }
 
-    // DIETAS
+    // Eliminar Vacuna
 
+    private void eliminarVacuna() {
+
+        if (vacunaSeleccionada == null ||
+                mascotaEncontrada == null) {
+            return;
+        }
+
+        Vacuna vacuna = vacunaSeleccionada;
+
+        String idMascota = mascotaEncontrada.getIdMascota();
+        btnEliminarVacuna.setEnabled(false);
+
+        io.execute(() -> {
+            try {
+                int filas = db.vacunaDao().eliminar(vacuna);
+                runOnUiThread(() -> {
+
+                    if (filas > 0) {
+
+                        vacunaSeleccionada = null;
+                        txtDetalleVacuna.setText(
+                                "Vacuna eliminada correctamente"
+                        );
+                        listarVacunas(idMascota);
+                    } else {
+                        txtDetalleVacuna.setText(
+                                "No se encontró la vacuna"
+                        );
+                        btnEliminarVacuna.setEnabled(true);
+                    }
+                });
+            } catch (Exception e) {
+                android.util.Log.e(
+                        "HUELLITAS",
+                        "Error al eliminar vacuna",
+                        e
+                );
+                runOnUiThread(() -> {
+                    txtDetalleVacuna.setText(
+                            "Error al eliminar vacuna"
+                    );
+                    btnEliminarVacuna.setEnabled(true);
+                });
+            }
+        });
+    }
+
+
+    // DIETAS
     private void listarDietas(String idMascota) {
 
         dietaSeleccionada = null;
